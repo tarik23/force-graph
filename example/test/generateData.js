@@ -21,10 +21,24 @@ const numberOfCases = 50
 const prefixOfCase = 'CasE'
 const cases = randomizeArray(prefixOfCase, numberOfCases)
 
+const rootId = 'Radar';
 
 const nodes = []
+// add root
+nodes.push(
+    {
+        id: rootId,
+        group: 0,
+        collapsed: 1,
+        childLinks: []
+    }
+)
+
 function addNode(id, group = 1) {
-    nodes.push({id, group})
+    const obj = {id, group}
+    obj.collapsed = 1
+    obj.childLinks = []
+    nodes.push(obj)
 }
 trends.forEach(e => addNode(e, 1))
 techs.forEach(e => addNode(e, 2))
@@ -59,8 +73,17 @@ function randomLinkedNodes(numberOfLinks) {
 
 function xxx () {
     const maxNumberOfTechForOneCase = 3;
-
     const links = []
+
+    // link root with trends
+    for (let i = 0; i < trends.length; i++) {
+        const linkWithRoot = link(rootId, trends[i])
+        debugger
+        links.push(linkWithRoot)
+    }
+
+
+
     //link trends with tech
     for (let i = 0; i < techs.length; i++) {
         const randomTrend = Math.round(Math.random() * (trends.length - 1))
@@ -73,11 +96,11 @@ function xxx () {
     }
     //link case with tech
     for (let i = 0; i < cases.length; i++) {
-        const source = cases[i]
+        const target = cases[i]
         const numberOfLinks = Math.round(Math.random() * maxNumberOfTechForOneCase + 1) || 1
         for (let j = 0; j < numberOfLinks; j++) {
-            const randomTech = Math.round(Math.random() * techs.length)
-            const target = techs[randomTech]
+            const randomTech = Math.round(Math.random() * (techs.length -1))
+            const source = techs[randomTech]
             links.push(link(source, target))
         }
     }
@@ -90,11 +113,34 @@ function xxx () {
 const links = xxx();
 
 
-const data = {
+const gData = {
     nodes, links
 }
 
-console.log('data', data);
+// link parent/children
+const nodesById = Object.fromEntries(gData.nodes.map(node => [node.id, node]));
+gData.links.forEach(link => {
+    nodesById[link.source].childLinks.push(link);
+});
+
+const getPrunedTree = () => {
+    const visibleNodes = [];
+    const visibleLinks = [];
+
+    (function traverseTree(node = nodesById[rootId]) {
+        visibleNodes.push(node);
+        if (node.collapsed) return;
+        visibleLinks.push(...node.childLinks);
+        node.childLinks
+            .map(link => ((typeof link.target) === 'object') ? link.target : nodesById[link.target]) // get child node
+            .forEach(traverseTree);
+    })(); // IIFE
+
+    return { nodes: visibleNodes, links: visibleLinks };
+};
+
+
+console.log('gData', gData);
 
 //nodes as tech
 
