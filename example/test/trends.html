@@ -44,11 +44,11 @@
         .nodeCanvasObject((node, ctx, globalScale) => {
 
             //draw circle
-            const radius = getRadius (node.googleCount, 10, 'byGoogle');
+            const radius = getRadiusBasedOnTotal(node.totalCount, 20);
             ctx.beginPath(); ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI, false); ctx.fill();
 
             //draw text
-            const label = node.id + '_' + node.googleCount;
+            const label = node.id //+ '_' + node.googleCount;
             const fontSize = 12 / globalScale;
             ctx.font = `${fontSize}px Sans-Serif`;
             const textWidth = ctx.measureText(label).width;
@@ -76,6 +76,9 @@
         })
         .linkCanvasObjectMode(() => 'after')
         .linkCanvasObject((link, ctx) => {
+
+            return
+
             const MAX_FONT_SIZE = 1;
             const LABEL_NODE_MARGIN = Graph.nodeRelSize() * 1.5;
 
@@ -122,7 +125,9 @@
             ctx.fillStyle = 'darkgrey';
             ctx.fillText(label, 0, 0);
             ctx.restore();
-        });
+        })
+        //.d3Force("charge", () => {const z = 2; debugger})
+    ;
 
 
     // fetch('../datasets/miserables.json').then(res => res.json()).then(data => {
