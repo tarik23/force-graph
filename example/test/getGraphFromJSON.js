@@ -4903,6 +4903,8 @@ function getRadius(weight, maxRadius, byGoogleOrGithub) {
 const nodes = []
 const links = []
 
+const maxAverage = 0;
+
 // collect nodes
 for (let i = 0; i < tableReady.length; i++) {
     const row = tableReady[i]
@@ -4932,6 +4934,10 @@ for (let i = 0; i < tableReady.length; i++) {
     const row = tableReady[i]
     const nodeOneName = row['x']
 
+    const sourceNode = nodes.find(e => e.id == nodeOneName)
+
+    sourceNode.linksCount = 0
+
     for (const [key, value] of Object.entries(row)) {
         if (key === 'x' || key === 'total') continue
         if (value === '-') break;
@@ -4939,25 +4945,35 @@ for (let i = 0; i < tableReady.length; i++) {
         // find mirrowed value
 
         const target = key
+
+
+
         const rowWithSecondValue = tableReady.find(e => e.x == target)
         const secondValue = rowWithSecondValue[nodeOneName]
 
         const average = (parseFloat(value) + parseFloat(secondValue)) / 2
 
 
-        if (average < 12) {
+        if (average < 0.1) {
             continue;
         }
+
+
         const source = nodeOneName;
-
-
         if (target == source) continue
+
+
+        sourceNode.linksCount++
+        const targetNode = nodes.find(e => e.id == target)
+        targetNode.linksCount ?  targetNode.linksCount++ : targetNode.linksCount = 1
+
+
 
         links.push(
             {
                 source,
                 target,
-                value,
+                value: parseFloat(average)
             }
         )
 

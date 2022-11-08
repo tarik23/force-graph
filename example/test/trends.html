@@ -8,7 +8,7 @@
     }
     </style>
 
-    <script src="//unpkg.com/force-graph"></script>
+    <script src="compiled.js"></script>
     <script src="getGraphFromJSON.js"></script>
     <!--<script src="../../dist/force-graph.js"></script>-->
 </head>
@@ -36,7 +36,7 @@
     const Graph = ForceGraph()(elem)
         .graphData(data)
         .nodeId('id')
-        .nodeVal('val')
+        .nodeVal('weight')
         .nodeLabel('id')
         //.nodeAutoColorBy('group')
         .linkSource('source')
@@ -45,7 +45,9 @@
 
             //draw circle
             const radius = getRadiusBasedOnTotal(node.totalCount, 20);
-            ctx.beginPath(); ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI, false); ctx.fill();
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI, false);
+            ctx.fill();
 
             //draw text
             const label = node.id //+ '_' + node.googleCount;
@@ -64,8 +66,7 @@
 
             node.__bckgDimensions = bckgDimensions; // to re-use in nodePointerAreaPaint
 
-           //
-
+            //
 
 
         })
@@ -76,8 +77,8 @@
         })
         .linkCanvasObjectMode(() => 'after')
         .linkCanvasObject((link, ctx) => {
-
-            return
+              return
+            //if (link.value > 12) return
 
             const MAX_FONT_SIZE = 1;
             const LABEL_NODE_MARGIN = Graph.nodeRelSize() * 1.5;
@@ -93,7 +94,7 @@
                 [c]: start[c] + (end[c] - start[c]) / 2 // calc middle point
             })));
 
-            const relLink = { x: end.x - start.x, y: end.y - start.y };
+            const relLink = {x: end.x - start.x, y: end.y - start.y};
 
             const maxTextLength = Math.sqrt(Math.pow(relLink.x, 2) + Math.pow(relLink.y, 2)) - LABEL_NODE_MARGIN * 2;
 
@@ -103,10 +104,11 @@
             if (textAngle < -Math.PI / 2) textAngle = -(-Math.PI - textAngle);
 
             //const label = `${link.source.id} > ${link.target.id}`;
-            const label = `${link.value}`;
+
+            const label = `${Math.round(link.value)}`;
 
             // estimate fontSize to fit in link length
-            ctx.font = '1px Sans-Serif';
+            ctx.font = '50px Sans-Serif';
             const fontSize = Math.min(MAX_FONT_SIZE, maxTextLength / ctx.measureText(label).width);
             ctx.font = `${fontSize}px Sans-Serif`;
             const textWidth = ctx.measureText(label).width;
@@ -118,7 +120,7 @@
             ctx.rotate(textAngle);
 
             ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-            ctx.fillRect(- bckgDimensions[0] / 2, - bckgDimensions[1] / 2, ...bckgDimensions);
+            ctx.fillRect(-bckgDimensions[0] / 2, -bckgDimensions[1] / 2, ...bckgDimensions);
 
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
@@ -126,7 +128,101 @@
             ctx.fillText(label, 0, 0);
             ctx.restore();
         })
-        //.d3Force("charge", () => {const z = 2; debugger})
+
+    Graph.d3Force('link').distance(link => {
+        //if ( link.value < 5 ) return 10000
+        return 30
+
+
+        const val = link.value;
+        return Math.sqrt(val) + 20
+        // чем при 0 должна быть максимальной. при 100 должна быть минимальной
+        // should be beetween 20 - 100
+        const minAllowed = 1;
+        const maxAllowed = 250;
+
+        const maxAverage = 57
+
+        const intervaleddd = maxAllowed - minAllowed
+
+        const distance = Math.round(((maxAverage - val) / 100) * intervaleddd) + minAllowed
+
+        return distance
+
+        const z = 12
+        debugger
+        return Math.round(Math.random() * 30)
+    })
+
+
+    Graph.d3Force('link').strength((link) => {
+            const val = link.value;
+
+
+            //if ( val < 12 ) return 0.001
+            //return 0.05
+            //
+            // // 1 - 57; 0.001 - 0.01
+             //const calculated = - 1 / ((15.78 * val) - 1200) //link.source.linksCount // ((link.source.linksCount + link.target.linksCount) / 2) //Math.min(link.source.linksCount, link.target.linksCount)
+            // console.log(val,',', calculated);
+            //
+
+            const calculated = 0.00002  * val * val + 0.001
+             return calculated
+
+
+
+
+            const force = - 1 / ((15.78 * val) - 1000)
+
+        debugger
+            return force
+
+            const stepen = 10
+            const z = (0.01 / Math.pow(57, 1/stepen) )  * Math.pow(val, 1 / stepen) + 0.001
+            console.log('val', val,'z', z);
+            return z
+
+            return 1 / Math.sqrt(100 - val)
+            Math.sqrt(0)
+
+            const y = (1 / Math.pow(val, 3))
+            const my = Math.round(y * 57) + 1
+            console.log('my', my)
+            const x = 1 / my
+            debugger
+
+            return x
+
+        }
+    );
+    Graph.d3Force('charge').strength(node => {
+        return -30;
+
+        //const val = link.value;
+        if (node.totalCount < 30) return 0
+        return -30
+
+        const charge = - 0.00428 * node.totalCount
+        debugger
+        return charge
+
+    })
+
+
+    //TODO ->
+    //     .d3Force('link').strength(link => {
+    //         let rounded = Math.round(link.value)
+    //
+    //         if (rounded)
+    //
+    //         //rounded = 4
+    //             const x =  1 /  (rounded == 0 ? 1 : rounded)
+    //         debugger
+    //     return x
+    // })
+    //.d3Force('collision', d3.forceCollide(node => Math.sqrt(100 / (node.level + 1)) * 1)) - https://github.com/vasturiano/force-graph/issues/262
+    //.d3Force("link", )
     ;
 
 
