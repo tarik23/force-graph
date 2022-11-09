@@ -29,14 +29,20 @@
                 return 'black'
         }
     }
-
+    // #9a47ff - main color
 
     //const data from generateData.js
     const elem = document.getElementById('graph');
+    const primaryColor = '#9a47ff';
+    const backgroundColor = 'black';
+    const linkColor = '#FFFFFF'
+
+    elem.style.backgroundColor = backgroundColor
+
     const Graph = ForceGraph()(elem)
         .graphData(data)
         .nodeId('id')
-        .nodeVal('weight')
+        .nodeVal('totalCount')
         .nodeLabel('id')
         //.nodeAutoColorBy('group')
         .linkSource('source')
@@ -56,12 +62,13 @@
             const textWidth = ctx.measureText(label).width;
             const bckgDimensions = [textWidth, fontSize].map(n => n + fontSize * 0.2); // some padding
 
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.fillStyle = `${linkColor}B0`;
+            //ctx.fillStyle = primaryColor;
             ctx.fillRect(node.x - bckgDimensions[0] / 2, node.y - bckgDimensions[1] / 2, ...bckgDimensions);
 
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillStyle = getColorByGroup(node?.group) //'red'//node.color;
+            ctx.fillStyle = primaryColor//getColorByGroup(node?.group) //'red'//node.color;
             ctx.fillText(label, node.x, node.y);
 
             node.__bckgDimensions = bckgDimensions; // to re-use in nodePointerAreaPaint
@@ -127,6 +134,17 @@
             ctx.fillStyle = 'darkgrey';
             ctx.fillText(label, 0, 0);
             ctx.restore();
+        })
+        .linkVisibility(link => {
+            return true
+        })
+        .linkWidth(link => {
+            return 2
+        })
+        .linkColor(link => {
+            const alpha = convertAlphaFromDecimalToHex(link.value / maxAverage)
+            return `${linkColor}${alpha}`
+
         })
 
     Graph.d3Force('link').distance(link => {
@@ -208,6 +226,19 @@
         return charge
 
     })
+
+    Graph.zoom(3, 200)
+    // fit to canvas when engine stops
+    //Graph.cooldownTicks(1000)
+
+
+    // Graph.onEngineStop(() => {
+    //     Graph.onEngineStop(() => {}) // remove handler
+    //     Graph.zoomToFit(400)
+    // })
+
+
+    ;
 
 
     //TODO ->

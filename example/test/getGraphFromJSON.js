@@ -4903,7 +4903,7 @@ function getRadius(weight, maxRadius, byGoogleOrGithub) {
 const nodes = []
 const links = []
 
-const maxAverage = 0;
+let maxAverage = 0;
 
 // collect nodes
 for (let i = 0; i < tableReady.length; i++) {
@@ -4967,6 +4967,7 @@ for (let i = 0; i < tableReady.length; i++) {
         const targetNode = nodes.find(e => e.id == target)
         targetNode.linksCount ?  targetNode.linksCount++ : targetNode.linksCount = 1
 
+        average > maxAverage ? maxAverage = average : null
 
 
         links.push(
@@ -4982,10 +4983,20 @@ for (let i = 0; i < tableReady.length; i++) {
 
 }
 
+console.log('maxAverage', maxAverage)
+
 const data = {
     nodes,
     links,
 }
+
+function convertAlphaFromDecimalToHex(al) {
+    const alpha = Math.round(al * 255);
+    const hexAlpha = (alpha + 0x10000).toString(16).substr(-2).toUpperCase();
+    return hexAlpha
+}
+
+
 
 console.log('data', data)
 
